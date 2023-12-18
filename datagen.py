@@ -7,7 +7,7 @@ def get_response(instructions):
         { "role": "system", "content": instructions },
     ]
 
-    completion = openai.ChatCompletion.create(
+    completion = openai.chat.completions.create(
         model="gpt-4",
         messages=messages,
     )
