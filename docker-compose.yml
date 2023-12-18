@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_USERNAME=mongoadmin
+      - MONGODB_PASSWORD=secret
+      - MONGODB_HOSTNAME=mongo
+      - RABBITMQ_HOSTNAME=rabbitmq
+      - OPENAI_API_KEY=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
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  mongo:
+    image: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongoadmin
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+    volumes:
+      - mongo_data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  mongo_data:
+  rabbitmq_data:
