@@ -1,6 +1,16 @@
 import openai
 import random
 import pika
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+rabbitmq_username = config.get('RABBITMQ', 'RABBITMQ_USERNAME')
+rabbitmq_password = config.get('RABBITMQ', 'RABBITMQ_PASSWORD')
+rabbitmq_host = config.get('RABBITMQ', 'RABBITMQ_HOST')
+rabbitmq_port = config.getint('RABBITMQ', 'RABBITMQ_PORT')
+rabbitmq_virtual_host = config.get('RABBITMQ', 'RABBITMQ_VIRTUAL_HOST')
 
 def get_response(instructions):
     messages = [
@@ -13,8 +23,6 @@ def get_response(instructions):
     )
 
     return completion.choices[0].message.content
-
-
 
 def read_words_from_file(filename):
     with open(filename, 'r', encoding='utf-8') as file:
@@ -39,19 +47,15 @@ def generate_story_prompt():
     prompt = f"Write a short story in Bengali (3-5 paragraphs) which only uses very simple words that a 3-4 year old child would likely understand. The story should use the verb “{chosen_verb}”, the noun “{chosen_noun}” and the adjective “{chosen_adjective}”. The story should have the following features: {', '.join(chosen_features)}. Remember to only use simple Bengali words!"
     return prompt
 
-
-
 def write_to_rabbitmq(story):
-    # Establish a connection to the RabbitMQ server
-    with pika.BlockingConnection(pika.ConnectionParameters('localhost')) as connection:
-        channel = connection.channel()
-
-        # Declare the queue where we want to write the story
-        channel.queue_declare(queue='children_stories')
-
-        # Publish the story to the queue
-        channel.basic_publish(exchange='', routing_key='children_stories', body=story)
-
+    # Write the story to RabbitMQ
+    credentials = pika.PlainCredentials(rabbitmq_username, rabbitmq_password)
+    parameters = pika.ConnectionParameters(rabbitmq_host, rabbitmq_port, rabbitmq_virtual_host, credentials)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
+    channel.queue_declare(queue='story_queue')
+    channel.basic_publish(exchange='', routing_key='story_queue', body=story)
+    connection.close()
 
 while True:
     story_prompt = generate_story_prompt()
