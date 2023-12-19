@@ -2,15 +2,12 @@ import openai
 import random
 import pika
 import configparser
+import logging
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-rabbitmq_username = config.get('RABBITMQ', 'RABBITMQ_USERNAME')
-rabbitmq_password = config.get('RABBITMQ', 'RABBITMQ_PASSWORD')
-rabbitmq_host = config.get('RABBITMQ', 'RABBITMQ_HOST')
-rabbitmq_port = config.getint('RABBITMQ', 'RABBITMQ_PORT')
-rabbitmq_virtual_host = config.get('RABBITMQ', 'RABBITMQ_VIRTUAL_HOST')
+AMPQ_URL = config['RabbitMQ']['AMQP_URL']
 
 def get_response(instructions):
     messages = [
@@ -47,18 +44,37 @@ def generate_story_prompt():
     prompt = f"Write a short story in Bengali (3-5 paragraphs) which only uses very simple words that a 3-4 year old child would likely understand. The story should use the verb “{chosen_verb}”, the noun “{chosen_noun}” and the adjective “{chosen_adjective}”. The story should have the following features: {', '.join(chosen_features)}. Remember to only use simple Bengali words!"
     return prompt
 
-def write_to_rabbitmq(story):
-    # Write the story to RabbitMQ
-    credentials = pika.PlainCredentials(rabbitmq_username, rabbitmq_password)
-    parameters = pika.ConnectionParameters(rabbitmq_host, rabbitmq_port, rabbitmq_virtual_host, credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-    channel.queue_declare(queue='story_queue')
-    channel.basic_publish(exchange='', routing_key='story_queue', body=story)
-    connection.close()
+def write_to_rabbitmq(story, amqp_url):
+    try:
+        # Parse the AMQP URL
+        parameters = pika.URLParameters(amqp_url)
+
+        # Establish a connection
+        connection = pika.BlockingConnection(parameters)
+        channel = connection.channel()
+
+        # Declare the queue
+        channel.queue_declare(queue='story_queue', durable=True)
+
+        # Ensure the story is a byte string
+        if isinstance(story, str):
+            story = story.encode()
+
+        # Publish the message
+        channel.basic_publish(exchange='', routing_key='story_queue', body=story)
+        logging.info("Message sent to RabbitMQ")
+    except pika.exceptions.AMQPConnectionError as e:
+        logging.error(f"Failed to connect to RabbitMQ: {e}")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+    finally:
+        # Close the connection if it's open
+        if 'connection' in locals() and connection.is_open:
+            connection.close()
+            logging.info("RabbitMQ connection closed")
 
 while True:
     story_prompt = generate_story_prompt()
     print(story_prompt)
     story = get_response(story_prompt)
-    write_to_rabbitmq(story)
+    write_to_rabbitmq(story, AMPQ_URL)
