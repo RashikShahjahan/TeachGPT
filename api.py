@@ -9,7 +9,7 @@ from utils import  get_single_story, write_story_to_mongodb
 import uvicorn
 from pydantic import BaseModel
 from pymongo import MongoClient
-
+import secrets
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
@@ -52,11 +52,24 @@ class UserCreate(BaseModel):
     password: str
 
 
+
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 client = MongoClient('mongodb://localhost:27017/')
 db = client['stories']
 users_collection = db['users']
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    invite_code: str  # New field for invite code
+
+invite_codes_collection = db['invite_codes']  # New collection for invite codes
+
+def generate_invite_code():
+    return secrets.token_urlsafe(16)  # Generates a 16-character URL-safe token
+
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -84,6 +97,12 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+@app.post("/generate_invite_code")
+async def generate_invite_code_endpoint():
+    invite_code = generate_invite_code()
+    invite_codes_collection.insert_one({"code": invite_code, "used": False})
+    return {"invite_code": invite_code}
 
 @app.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -117,10 +136,22 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 @app.post("/register")
 async def register(user_create: UserCreate):
+    # Check if the invite code is valid and not used
+    invite_code_record = invite_codes_collection.find_one({"code": user_create.invite_code, "used": False})
+    if not invite_code_record:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid or expired invite code"
+        )
+
+    # Mark the invite code as used
+    invite_codes_collection.update_one({"_id": invite_code_record["_id"]}, {"$set": {"used": True}})
+
     hashed_password = get_password_hash(user_create.password)
     user = {"username": user_create.username, "hashed_password": hashed_password}
     result = users_collection.insert_one(user)
     return {"username": user_create.username}
+
 
 @app.get("/draft")
 async def get_draft():

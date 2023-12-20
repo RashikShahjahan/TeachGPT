@@ -46,7 +46,7 @@ def generate_story_prompt():
 
 def write_to_rabbitmq(story, amqp_url):
     try:
-        # Parse the AMQP URL
+        # Parse the AMQP URL with credentials
         parameters = pika.URLParameters(amqp_url)
 
         # Establish a connection
