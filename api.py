@@ -168,4 +168,4 @@ async def publish_draft(story_request: StoryRequest, current_user: UserInDB = De
     return {"story_id":story_id}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, ssl_keyfile="~/securefolder/fullchain.pem", ssl_certfile="~/securefolder/privkey.pem")
+    uvicorn.run(app, host="0.0.0.0", port=8000, ssl_keyfile="/home/ec2-user/securefolder/fullchain.pem", ssl_certfile="/home/ec2-user/securefolder/privkey.pem")
