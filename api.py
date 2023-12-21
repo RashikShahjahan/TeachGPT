@@ -21,6 +21,7 @@ origins = [
     "https://localhost",
     "https://localhost:8000",
     "https://localhost:3000",
+    "https://banglallm.rashik.sh"
 ]
 
 app.add_middleware(
