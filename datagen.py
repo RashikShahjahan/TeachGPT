@@ -1,3 +1,4 @@
+import json
 import openai
 import random
 import pika
@@ -25,23 +26,9 @@ def read_words_from_file(filename):
     with open(filename, 'r', encoding='utf-8') as file:
         return [line.strip() for line in file.readlines() if line.strip()]
 
-def generate_story_prompt():
-    # Read the sets from their respective files
-    verbs = read_words_from_file('verbs.txt')
-    nouns = read_words_from_file('nouns.txt')
-    adjectives = read_words_from_file('adjectives.txt')
-    features = ["dialogue", "plot twist", "bad ending" ,"good ending" "moral value"]
-
-    # Randomly choose one verb, noun, and adjective
-    chosen_verb = random.choice(verbs)
-    chosen_noun = random.choice(nouns)
-    chosen_adjective = random.choice(adjectives)
-
-    # Randomly choose a number of features (between 1 and the length of the features list)
-    chosen_features = random.sample(features, random.randint(1, len(features)))
-
+def generate_story_prompt(english_story):
     # Create the prompt
-    prompt = f"Write a short story in Bengali (3-5 paragraphs) which only uses very simple words that a 5-6 year old child would likely understand. The story should use the verb “{chosen_verb}”, the noun “{chosen_noun}” and the adjective “{chosen_adjective}”. The story should have the following features: {', '.join(chosen_features)}. Remember to only use simple Bengali words!"
+    prompt = f"Please translate the following English passage into Bengali. Ensure that the translation is accurate and retains the original meaning and tone of the passage. The passage reads: {english_story}"
     return prompt
 
 def write_to_rabbitmq(story, amqp_url):
@@ -73,8 +60,8 @@ def write_to_rabbitmq(story, amqp_url):
             connection.close()
             logging.info("RabbitMQ connection closed")
 
-while True:
-    story_prompt = generate_story_prompt()
+for story in json.load(open('english_stories.json'))['story']:
+    story_prompt = generate_story_prompt(story)
     print(story_prompt)
     story = get_response(story_prompt)
     write_to_rabbitmq(story, AMPQ_URL)
