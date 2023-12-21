@@ -173,6 +173,6 @@ if __name__ == "__main__":
         app, 
         host="0.0.0.0", 
         port=8000, 
-        ssl_certfile="/home/ec2-user/securefolder/fullchain.pem",  # Certificate file
-        ssl_keyfile="/home/ec2-user/securefolder/privkey.pem"      # Private key file
+        #ssl_certfile="/home/ec2-user/securefolder/fullchain.pem",  # Certificate file
+        #ssl_keyfile="/home/ec2-user/securefolder/privkey.pem"      # Private key file
     )
