@@ -50,7 +50,7 @@ class UserInDB(User):
 class UserCreate(BaseModel):
     username: str
     password: str
-
+    invite_code: str  # New field for invite code
 
 
 
@@ -60,10 +60,7 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client['stories']
 users_collection = db['users']
 
-class UserCreate(BaseModel):
-    username: str
-    password: str
-    invite_code: str  # New field for invite code
+
 
 invite_codes_collection = db['invite_codes']  # New collection for invite codes
 
