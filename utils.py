@@ -1,20 +1,32 @@
 import pika
 import pymongo
+import configparser
+import logging
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+AMPQ_URL = config['RabbitMQ']['AMQP_URL']
 
 
 def get_single_story():
-    with pika.BlockingConnection(pika.ConnectionParameters('localhost')) as connection:
+    try:
+        # Parse the AMQP URL with credentials
+        parameters = pika.URLParameters(AMPQ_URL)
+
+        # Establish a connection
+        connection = pika.BlockingConnection(parameters)
         channel = connection.channel()
 
-        # Declare the queue where we want to read the story from
-        channel.queue_declare(queue='children_stories')
 
         # Get a single message from the queue
-        method, properties, body = channel.basic_get(queue='children_stories', auto_ack=True)
+        method, properties, body = channel.basic_get(queue='story_queue', auto_ack=True)
 
         # Return the message body (i.e. the story)
         return body.decode('utf-8') if body else None
-
+    except Exception as e:
+        logging.error(e)
+        return None
 
 def write_story_to_mongodb(story):
     # Connect to MongoDB using a context manager
