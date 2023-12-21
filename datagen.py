@@ -41,7 +41,7 @@ def write_to_rabbitmq(story, amqp_url):
         channel = connection.channel()
 
         # Declare the queue
-        channel.queue_declare(queue='story_queue', durable=False)
+        channel.queue_declare(queue='stories', durable=False)
 
         # Ensure the story is a byte string
         if isinstance(story, str):

@@ -20,7 +20,7 @@ def get_single_story():
 
 
         # Get a single message from the queue
-        method, properties, body = channel.basic_get(queue='story_queue', auto_ack=True)
+        method, properties, body = channel.basic_get(queue='stories', auto_ack=True)
 
         # Return the message body (i.e. the story)
         return body.decode('utf-8') if body else None
