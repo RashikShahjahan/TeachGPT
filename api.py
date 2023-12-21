@@ -99,13 +99,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-@app.post("/generate_invite_code")
+@app.post("/api/generate_invite_code")
 async def generate_invite_code_endpoint():
     invite_code = generate_invite_code()
     invite_codes_collection.insert_one({"code": invite_code, "used": False})
     return {"invite_code": invite_code}
 
-@app.post("/token")
+@app.post("/api/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
@@ -135,7 +135,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="Invalid token")
     return user
 
-@app.post("/register")
+@app.post("/api/register")
 async def register(user_create: UserCreate):
     # Check if the invite code is valid and not used
     invite_code_record = invite_codes_collection.find_one({"code": user_create.invite_code, "used": False})
@@ -154,7 +154,7 @@ async def register(user_create: UserCreate):
     return {"username": user_create.username}
 
 
-@app.get("/draft")
+@app.get("/api/draft")
 async def get_draft():
     draft = get_single_story()
     if draft:
@@ -163,7 +163,7 @@ async def get_draft():
         return {"draft":"No drafts to edit!"}
 
 
-@app.post("/draft")
+@app.post("/api/draft")
 async def publish_draft(story_request: StoryRequest, current_user: UserInDB = Depends(get_current_user)):
     story_id = str(write_story_to_mongodb(story_request.story))
     return {"story_id":story_id}
