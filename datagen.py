@@ -48,7 +48,7 @@ def write_to_rabbitmq(story, amqp_url):
             story = story.encode()
 
         # Publish the message
-        channel.basic_publish(exchange='', routing_key='story_queue', body=story)
+        channel.basic_publish(exchange='', routing_key='stories', body=story)
         logging.info("Message sent to RabbitMQ")
     except pika.exceptions.AMQPConnectionError as e:
         logging.error(f"Failed to connect to RabbitMQ: {e}")
