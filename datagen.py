@@ -60,7 +60,8 @@ def write_to_rabbitmq(story, amqp_url):
             connection.close()
             logging.info("RabbitMQ connection closed")
 
-for story in json.load(open('english_stories.json'))['story']:
+# read story from english_stories.txt each story is separated by a newline
+for story in read_words_from_file('english_stories.txt'):
     story_prompt = generate_story_prompt(story)
     print(story_prompt)
     story = get_response(story_prompt)
