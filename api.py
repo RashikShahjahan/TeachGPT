@@ -54,7 +54,7 @@ class UserInDB(User):
 class UserCreate(BaseModel):
     username: str
     password: str
-    invite_code: str  # New field for invite code
+    inviteCode: str  # New field for invite code
 
 
 
@@ -138,7 +138,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 @app.post("/api/register")
 async def register(user_create: UserCreate):
     # Check if the invite code is valid and not used
-    invite_code_record = invite_codes_collection.find_one({"code": user_create.invite_code, "used": False})
+    invite_code_record = invite_codes_collection.find_one({"code": user_create.inviteCode, "used": False})
     if not invite_code_record:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -172,7 +172,7 @@ if __name__ == "__main__":
     uvicorn.run(
         app, 
         host="0.0.0.0", 
-        port=8000, 
+        port=8000
         #ssl_certfile="/home/ec2-user/securefolder/fullchain.pem",  # Certificate file
         #ssl_keyfile="/home/ec2-user/securefolder/privkey.pem"      # Private key file
     )
