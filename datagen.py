@@ -41,7 +41,7 @@ def generate_story_prompt():
     chosen_features = random.sample(features, random.randint(1, len(features)))
 
     # Create the prompt
-    prompt = f"Write a short story in Bengali (3-5 paragraphs) which only uses very simple words that a 3-4 year old child would likely understand. The story should use the verb “{chosen_verb}”, the noun “{chosen_noun}” and the adjective “{chosen_adjective}”. The story should have the following features: {', '.join(chosen_features)}. Remember to only use simple Bengali words!"
+    prompt = f"Write a short story in Bengali (3-5 paragraphs) which only uses very simple words that a 5-6 year old child would likely understand. The story should use the verb “{chosen_verb}”, the noun “{chosen_noun}” and the adjective “{chosen_adjective}”. The story should have the following features: {', '.join(chosen_features)}. Remember to only use simple Bengali words!"
     return prompt
 
 def write_to_rabbitmq(story, amqp_url):
