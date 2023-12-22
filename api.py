@@ -161,7 +161,7 @@ async def get_draft():
 
 
 @app.post("/draft")
-async def publish_draft(story_request: StoryRequest, current_user: UserInDB = Depends(get_current_user)):
+async def publish_draft(story_request: StoryRequest):
     story_id = str(write_story_to_mongodb(story_request.story))
     return {"story_id":story_id}
 
