@@ -63,7 +63,7 @@ def write_to_rabbitmq(story, amqp_url):
             logging.info("RabbitMQ connection closed")
 
 start = 0
-end = 10000
+end = 1000
 i = 0
 # read story from english_stories.txt each story is separated by a newline
 for english_text in read_words_from_file('english_stories.txt'):
@@ -73,7 +73,7 @@ for english_text in read_words_from_file('english_stories.txt'):
     #write_to_rabbitmq(story, AMPQ_URL)
     i+=1
     bangla_text = get_single_story()
-    with open('bangla_stories.jsonl', 'a', encoding='utf-8') as file:
+    with open('test.jsonl', 'a', encoding='utf-8') as file:
         json.dump({"instruction": "Please translate the following English passage into Bengali. Ensure that the translation is accurate and retains the original meaning and tone of the passage.", "input": english_text, "output": bangla_text}, file)
         file.write('\n')
     if i == end:
