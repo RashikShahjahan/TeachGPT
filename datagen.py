@@ -5,6 +5,8 @@ import pika
 import configparser
 import logging
 
+from utils import get_single_story
+
 config = configparser.ConfigParser()
 config.read('config.ini')
 
@@ -60,9 +62,19 @@ def write_to_rabbitmq(story, amqp_url):
             connection.close()
             logging.info("RabbitMQ connection closed")
 
+start = 0
+end = 10000
+i = 0
 # read story from english_stories.txt each story is separated by a newline
-for story in read_words_from_file('english_stories.txt'):
-    story_prompt = generate_story_prompt(story)
-    print(story_prompt)
-    story = get_response(story_prompt)
-    write_to_rabbitmq(story, AMPQ_URL)
+for english_text in read_words_from_file('english_stories.txt'):
+    #story_prompt = generate_story_prompt(story)
+    #print(story_prompt)
+    #story = get_response(story_prompt)
+    #write_to_rabbitmq(story, AMPQ_URL)
+    i+=1
+    bangla_text = get_single_story()
+    with open('bangla_stories.jsonl', 'a', encoding='utf-8') as file:
+        json.dump({"instruction": "Please translate the following English passage into Bengali. Ensure that the translation is accurate and retains the original meaning and tone of the passage.", "input": english_text, "output": bangla_text}, file)
+        file.write('\n')
+    if i == end:
+        break
